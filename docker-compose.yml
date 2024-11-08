@@ -16,14 +16,11 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      args:
-        DB_HOST: ${DB_HOST}
-        DB_USER: ${DB_USER}
-        DB_PASSWORD: ${DB_PASSWORD}
-        DB_DATABASE: ${DB_DATABASE}
     restart: always
     ports:
       - '3000:3000'
+    env_file:
+      - .env  # Указываем файл .env, из которого загружаются переменные окружения
     depends_on:
       - db
 
