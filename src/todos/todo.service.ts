@@ -5,7 +5,7 @@ import { CreateTodoDto } from 'src/todos/create-todo.dto'
 @Injectable()
 export class TodoService {
   constructor(@Inject('DATABASE_CONNECTION') private db: Pool) {
-    // this.createTable()
+    this.createTable()
   }
 
   private async createTable() {

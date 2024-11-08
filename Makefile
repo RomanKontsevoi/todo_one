@@ -8,6 +8,7 @@ IMAGE_TAG=latest
 
 build:
 	docker-compose -f docker-compose.yml up --build -d
+
 run:
 	docker-compose -f docker-compose.prod.yml up -d
 
@@ -35,3 +36,6 @@ pull:
 redeploy:
 	make pull
 	make restart
+
+check_db:
+	docker exec -it todo_one-db-1 mysql -u user -p

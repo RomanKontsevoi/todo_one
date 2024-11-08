@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   db:
     image: 3844320/todo_one-db:latest
@@ -11,6 +13,8 @@ services:
       - '3306:3306'
     volumes:
       - db_data:/var/lib/mysql
+    env_file:
+      - .env  # Добавлено, чтобы загрузить переменные окружения
 
   app:
     image: 3844320/todo_one-app:latest
@@ -19,6 +23,8 @@ services:
       - '3000:3000'
     depends_on:
       - db
+    env_file:
+      - .env  # Добавлено, чтобы загрузить переменные окружения
 
 volumes:
   db_data:
