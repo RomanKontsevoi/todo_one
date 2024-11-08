@@ -7,10 +7,10 @@ IMAGE_DB_NAME=3844320/$(CONTAINER_DB_NAME)
 IMAGE_TAG=latest
 
 build:
-	docker-compose -f docker-compose.yml up --build -d
+	docker compose -f docker-compose.yml up --build -d
 
 run:
-	docker-compose -f docker-compose.prod.yml up -d
+	docker compose -f docker-compose.prod.yml up -d
 
 stop:
 	docker stop $(CONTAINER_DB_NAME)-1 && docker rm $(CONTAINER_DB_NAME)-1
