@@ -1,26 +1,25 @@
-FROM node:20
-
-ARG DB_HOST
-ARG DB_USER
-ARG DB_PASSWORD
-ARG DB_DATABASE
-ARG NODE_ENV
-
-ENV DB_HOST=$DB_HOST
-ENV DB_USER=$DB_USER
-ENV DB_PASSWORD=$DB_PASSWORD
-ENV DB_DATABASE=$DB_DATABASE
-ENV NODE_ENV $NODE_ENV
+# Этап сборки
+FROM node:20-alpine AS build
 
 WORKDIR /app
-
 COPY package.json yarn.lock ./
-RUN yarn
+
+ARG NODE_ENV=production
+ENV NODE_ENV=${NODE_ENV}
+RUN yarn install --frozen-lockfile --production
 
 COPY . .
-
 RUN yarn build
 
-EXPOSE 3000
+# Этап запуска
+FROM node:20-alpine
 
-CMD ["yarn", "start"]
+WORKDIR /app
+ENV NODE_ENV=production
+
+COPY --from=build /app/dist /app/dist
+COPY --from=build /app/node_modules /app/node_modules
+COPY --from=build /app/package.json /app/package.json
+
+EXPOSE 3000
+CMD ["node", "dist/main.js"]
