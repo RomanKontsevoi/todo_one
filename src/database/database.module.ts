@@ -1,20 +1,19 @@
-import { Module } from '@nestjs/common';
-import * as dotenv from 'dotenv';
-import { createPool } from 'mysql2/promise';
-
-dotenv.config();
+import { Module } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
+import { createPool } from 'mysql2/promise'
 
 @Module({
   providers: [
     {
       provide: 'DATABASE_CONNECTION',
-      useFactory: async () =>
+      useFactory: async (configService: ConfigService) =>
         createPool({
-          host: process.env.DB_HOST,
-          user: process.env.DB_USER,
-          password: process.env.DB_PASSWORD,
-          database: process.env.DB_DATABASE,
+          host: configService.get<string>('DB_HOST'),
+          user: configService.get<string>('DB_USER'),
+          password: configService.get<string>('DB_PASSWORD'),
+          database: configService.get<string>('DB_DATABASE'),
         }),
+      inject: [ConfigService],
     },
   ],
   exports: ['DATABASE_CONNECTION'],
