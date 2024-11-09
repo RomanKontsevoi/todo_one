@@ -33,8 +33,8 @@ export class TodosController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string): string {
-    return `This action returns a #${id} todo`;
+  findOne(@Param('id') id: string): Promise<CreateTodoDto> {
+    return this.todoService.findOneTodo(id);
   }
 
   @Delete(':id')

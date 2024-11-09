@@ -35,4 +35,21 @@ export class TodoService {
     const [rows] = await this.db.query('SELECT * FROM todos')
     return rows as CreateTodoDto[]
   }
+
+  async findOneTodo(id: string): Promise<CreateTodoDto> {
+    try {
+      const [rows] = await this.db
+          .execute('SELECT * FROM todos WHERE id = ?', [id]) as [CreateTodoDto[], any]
+
+      // Check if any rows were returned
+      if (rows.length === 0) {
+        return null; // Return null if no todo found
+      }
+
+      return rows[0] as CreateTodoDto; // Return the first matching todo
+    } catch (error) {
+      console.error('Error fetching todo:', error);
+      throw new Error('Could not fetch todo'); // Handle error appropriately
+    }
+  }
 }
