@@ -18,7 +18,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 512M  # Лимит памяти для контейнера db
+          memory: 450M  # Лимит памяти для контейнера db
           cpus: '0.5'    # Лимит на использование процессора (50% одного ядра)
 
   app:
@@ -33,7 +33,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 256M  # Лимит памяти для контейнера app
+          memory: 200M  # Лимит памяти для контейнера app
           cpus: '0.5'    # Лимит на использование процессора (50% одного ядра)
 
 volumes:
