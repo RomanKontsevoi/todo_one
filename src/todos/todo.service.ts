@@ -1,6 +1,7 @@
-import { Injectable, Inject } from '@nestjs/common'
-import { Pool } from 'mysql2/promise'
+import { Injectable, Inject, NotFoundException } from '@nestjs/common'
+import { Pool, ResultSetHeader } from 'mysql2/promise'
 import { CreateTodoDto } from 'src/todos/create-todo.dto'
+import { UpdateTodoDto } from 'src/todos/update-todo.dto'
 
 @Injectable()
 export class TodoService {
@@ -15,7 +16,8 @@ export class TodoService {
         title VARCHAR(255) NOT NULL,
         description TEXT,
         completed BOOLEAN DEFAULT FALSE,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `
 
@@ -24,11 +26,11 @@ export class TodoService {
   }
 
   async create(title: string, description: string): Promise<any> {
-    const [result] = await this.db.execute('INSERT INTO todos (title, description) VALUES (?, ?)', [
-      title,
-      description,
-    ])
-    return result
+    const [result] = await this.db.execute<ResultSetHeader>(
+      'INSERT INTO todos (title, description, completed, created_at, updated_at) VALUES (?, ?, ?, NOW(), NOW())',
+      [title, description, false]
+    )
+    return { id: result.insertId, title, description, completed: false, ...result }
   }
 
   async findAllTodos(): Promise<CreateTodoDto[]> {
@@ -38,18 +40,57 @@ export class TodoService {
 
   async findOneTodo(id: string): Promise<CreateTodoDto> {
     try {
-      const [rows] = await this.db
-          .execute('SELECT * FROM todos WHERE id = ?', [id]) as [CreateTodoDto[], any]
+      const [rows] = (await this.db.execute('SELECT * FROM todos WHERE id = ?', [id])) as [
+        CreateTodoDto[],
+        any,
+      ]
 
       // Check if any rows were returned
       if (rows.length === 0) {
-        return null; // Return null if no todo found
+        return null // Return null if no todo found
       }
 
-      return rows[0] as CreateTodoDto; // Return the first matching todo
+      return rows[0] as CreateTodoDto // Return the first matching todo
     } catch (error) {
-      console.error('Error fetching todo:', error);
-      throw new Error('Could not fetch todo'); // Handle error appropriately
+      console.error('Error fetching todo:', error)
+      throw new Error('Could not fetch todo') // Handle error appropriately
     }
+  }
+
+  async updateTodo(id: number, updateTodoDto: UpdateTodoDto): Promise<any> {
+    const { title, description, completed } = updateTodoDto
+
+    const fieldsArr = [{ title }, { description }, { completed }]
+    const fieldsArrFiltered = fieldsArr.filter((item) => Object.values(item)[0] !== undefined)
+    const setFields = fieldsArrFiltered
+      .map((item) => {
+        const [key] = Object.keys(item)
+        return `${key} = ?`
+      })
+      .join(', ')
+
+    const query = `UPDATE todos SET ${setFields}, updated_at = NOW() WHERE id = ?`
+
+    console.log(query)
+
+    const fieldValues = fieldsArrFiltered.map((item) => Object.values(item)[0])
+
+    const [result] = await this.db.execute<ResultSetHeader>(query, [...fieldValues, id])
+
+    if (result.affectedRows === 0) {
+      throw new NotFoundException(`Todo with ID ${id} not found`)
+    }
+
+    return { message: 'Todo updated successfully' }
+  }
+
+  async deleteTodo(id: number): Promise<any> {
+    const [result] = await this.db.execute<ResultSetHeader>('DELETE FROM todos WHERE id = ?', [id])
+
+    if (result.affectedRows === 0) {
+      throw new NotFoundException(`Todo with ID ${id} not found`)
+    }
+
+    return { message: 'Todo deleted successfully' }
   }
 }

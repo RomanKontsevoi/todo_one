@@ -1,13 +1,15 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
-  Get,
-  Param,
+  Get, NotFoundException,
+  Param, Patch,
   Post,
   Put,
-} from '@nestjs/common';
+} from '@nestjs/common'
 import { CreateTodoDto } from './create-todo.dto';
+import { UpdateTodoDto } from './update-todo.dto';
 import { TodoService } from './todo.service';
 
 @Controller('todos')
@@ -22,9 +24,28 @@ export class TodosController {
     );
   }
 
-  @Put()
-  update(@Body() createTodoDto: CreateTodoDto): string {
-    return 'this updates existing todo';
+  @Put(':id')
+  update(
+      @Param('id') id: number,
+      @Body() updateTodoDto: UpdateTodoDto,
+  ): any {
+    const {title, description, completed} = updateTodoDto
+
+    const requiredFields = [title, description, completed]
+
+    if (requiredFields.some(item => item === undefined)) {
+      throw new BadRequestException('Title, description and completed are required.')
+    }
+
+    return this.todoService.updateTodo(id, updateTodoDto);
+  }
+
+  @Patch(':id')
+  partialUpdate(
+      @Param('id') id: number,
+      @Body() updateTodoDto: UpdateTodoDto,
+  ): any {
+    return this.todoService.updateTodo(id, updateTodoDto);
   }
 
   @Get()
@@ -38,7 +59,7 @@ export class TodosController {
   }
 
   @Delete(':id')
-  deleteOne(@Param('id') id: string): string {
-    return `This action removes a #${id} todo`;
+  deleteOne(@Param('id') id: number): any {
+    return this.todoService.deleteTodo(id)
   }
 }
