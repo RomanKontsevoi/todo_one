@@ -35,7 +35,10 @@ export class TodoService {
 
   async findAllTodos(): Promise<CreateTodoDto[]> {
     const [rows] = await this.db.query('SELECT * FROM todos')
-    return rows as CreateTodoDto[]
+    return (rows as CreateTodoDto[]).map((row: any) => ({
+      ...row,
+      completed: Boolean(row.completed),
+    })) as CreateTodoDto[];
   }
 
   async findOneTodo(id: string): Promise<CreateTodoDto> {
@@ -45,15 +48,19 @@ export class TodoService {
         any,
       ]
 
-      // Check if any rows were returned
       if (rows.length === 0) {
         return null // Return null if no todo found
       }
 
-      return rows[0] as CreateTodoDto // Return the first matching todo
+      const [row] = rows
+
+      return {
+        ...row,
+        completed: Boolean(row.completed),
+      } as CreateTodoDto
     } catch (error) {
       console.error('Error fetching todo:', error)
-      throw new Error('Could not fetch todo') // Handle error appropriately
+      throw new Error('Could not fetch todo')
     }
   }
 
